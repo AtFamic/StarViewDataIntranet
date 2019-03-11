@@ -68,6 +68,5 @@ public class LoginServlet extends HttpServlet
         dispatcher = request.getRequestDispatcher("/DefaultViewServlet");
         dispatcher.forward(request, response);
     }
-
     private static final long serialVersionUID = 1L;
 }

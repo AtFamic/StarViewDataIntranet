@@ -36,14 +36,15 @@ public class TimeCardModify extends HttpServlet
         String year = request.getParameter("year");
         String month = request.getParameter("month");
         String date = request.getParameter("date");
-        String arrivalTime = TimeCardLogic.creteInputForTimecardModify(user.getUserID(), year, month, date, "arrivalTime");
-        String leaveTime = TimeCardLogic.creteInputForTimecardModify(user.getUserID(), year, month, date, "leaveTime");
-        String goOutTime = TimeCardLogic.creteInputForTimecardModify(user.getUserID(), year, month, date, "goOutTime");
-        String goBackTime = TimeCardLogic.creteInputForTimecardModify(user.getUserID(), year, month, date, "goBackTime");
+        String timecardid = request.getParameter("timecardID");
+        String arrivalTime = TimeCardLogic.creteInputForTimecardModify(user.getUserID(), year, month, date, "arrivalTime", timecardid);
+        String leaveTime = TimeCardLogic.creteInputForTimecardModify(user.getUserID(), year, month, date, "leaveTime", timecardid);
+        //String goOutTime = TimeCardLogic.creteInputForTimecardModify(user.getUserID(), year, month, date, "goOutTime", timecardid);
+        //String goBackTime = TimeCardLogic.creteInputForTimecardModify(user.getUserID(), year, month, date, "goBackTime", timecardid);
         request.setAttribute("arrivalTime", arrivalTime);
         request.setAttribute("leaveTime", leaveTime);
-        request.setAttribute("goOutTime", goOutTime);
-        request.setAttribute("goBackTime", goBackTime);
+        //request.setAttribute("goOutTime", goOutTime);
+        //request.setAttribute("goBackTime", goBackTime);
         String timecardID = TimeCardDAO.getTimeCardID(user.getUserID(), year, month, date);
         request.setAttribute("timecardID", timecardID);
         date = (new StringBuilder(String.valueOf(year))).append("/").append(month).append("/").append(date).toString();
@@ -70,7 +71,8 @@ public class TimeCardModify extends HttpServlet
         String leaveTime = leaveTimeHour.concat(":").concat(leaveTimeMin);
         if(leaveTimeHour.equals("--") || leaveTimeMin.equals("--"))
             leaveTime = "";
-        String goOutTimeHour = request.getParameter("goOutTimeHour");
+        /*
+         * String goOutTimeHour = request.getParameter("goOutTimeHour");
         String goOutTimeMin = request.getParameter("goOutTimeMin");
         String goOutTime = goOutTimeHour.concat(":").concat(goOutTimeMin);
         if(goOutTimeHour.equals("--") || goOutTimeMin.equals("--"))
@@ -80,6 +82,8 @@ public class TimeCardModify extends HttpServlet
         String goBackTime = goBackTimeHour.concat(":").concat(goBackTimeMin);
         if(goBackTimeHour.equals("--") || goBackTimeMin.equals("--"))
             goBackTime = "";
+         *
+         */
         String timecardID = request.getParameter("timecardID");
         HttpSession session = request.getSession();
         Account user = (Account)session.getAttribute("user");
@@ -87,7 +91,7 @@ public class TimeCardModify extends HttpServlet
         TimeCard timeCard = null;
         if(timecardID.equalsIgnoreCase("null"))
         {
-            timeCard = new TimeCard(userID, arrivalTime, goOutTime, goBackTime, leaveTime);
+            timeCard = new TimeCard(userID, arrivalTime, "", "", leaveTime);
             String date = request.getParameter("date");
             if(!date.equalsIgnoreCase("null"))
             {
@@ -99,7 +103,7 @@ public class TimeCardModify extends HttpServlet
             }
         } else
         {
-            timeCard = new TimeCard(timecardID, userID, arrivalTime, goOutTime, goBackTime, leaveTime);
+            timeCard = new TimeCard(timecardID, userID, arrivalTime, "", "", leaveTime);
             TimeCardDAO.updateTimeCard(timeCard);
         }
         response.sendRedirect("/SVD_IntraNet/TimeCardServlet");

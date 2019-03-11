@@ -10,8 +10,10 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 import model.DatabaseProp;
 
@@ -25,12 +27,13 @@ public class TimeCardDAO
     {
     }
 
-    public static TimeCard findTimeCardByUserIDANDDate(String userID, String year, String month, String date)
+    public static List<TimeCard> findTimeCardByUserIDANDDate(String userID, String year, String month, String date)
     {
     	Connection connection;
         TimeCard timeCard;
         connection = null;
         timeCard = null;
+        List<TimeCard> timecards = new ArrayList<TimeCard>();
     	try {
     	        Class.forName("org.h2.Driver");
     	        connection = DriverManager.getConnection(DatabaseProp.getDatabasePath(), DatabaseProp.getDatabaseUser(), "");
@@ -44,6 +47,7 @@ public class TimeCardDAO
     	            String goBackTime = resultSet.getString("GOBACKTIME");
     	            String leaveTime = resultSet.getString("LEAVETIME");
     	            timeCard = new TimeCard(timeCardID, userID, arrivalTime, goOutTime, goBackTime, leaveTime);
+    	            timecards.add(timeCard);
     	        }
     	}catch (ClassNotFoundException e) {
 			// TODO: handle exception
@@ -60,7 +64,7 @@ public class TimeCardDAO
 	                e.printStackTrace();
 	            }
 		}
-        return timeCard;
+        return timecards;
     }
 
     public static TimeCard findTimeCardByTimeCardID(String userID, String timecardID)
@@ -116,17 +120,20 @@ public class TimeCardDAO
              SMonth = SMonth.length() == 1 ? SMonth : "0".concat(SMonth);
              String SDay = String.valueOf(day);
              SDay = SDay.length() == 1 ? SDay : "0".concat(SDay);
-             TimeCard timeCard = null;
+             List<TimeCard> timeCards = null;
              if(existsTimeCardDependOnTime(date, userID))
              {
-                 timeCard = findTimeCardByUserIDANDDate(userID, String.valueOf(year), SMonth, SDay);
+                 timeCards = findTimeCardByUserIDANDDate(userID, String.valueOf(year), SMonth, SDay);
              } else
              {
-                 timeCard = new TimeCard(userID, "", "", "", "");
-                 String sql = (new StringBuilder("INSERT INTO TIMECARD (USERID,YEAR,MONTH,DATE,ARRIVALTIME,GOOUTTIME,GOBACKTIME,LEAVETIME)\r\nVALUES ('")).append(userID).append("','").append(year).append("','").append(SMonth).append("','").append(SDay).append("','").append(timeCard.getArrivalTime()).append("','").append(timeCard.getGoOutTime()).append("','").append(timeCard.getGoBackTime()).append("','").append(timeCard.getLeaveTime()).append("');").toString();
+            	 timeCards = new ArrayList<TimeCard>();
+                 timeCards.add(new TimeCard(userID, "", "", "", ""));
+                 String sql = (new StringBuilder("INSERT INTO TIMECARD (USERID,YEAR,MONTH,DATE,ARRIVALTIME,GOOUTTIME,GOBACKTIME,LEAVETIME)\r\nVALUES ('")).append(userID).append("','").append(year).append("','").append(SMonth).append("','").append(SDay).append("','").append(timeCards.get(0).getArrivalTime()).append("','").append(timeCards.get(0).getGoOutTime()).append("','").append(timeCards.get(0).getGoBackTime()).append("','").append(timeCards.get(0).getLeaveTime()).append("');").toString();
                  PreparedStatement preparedStatement = connection.prepareStatement(sql);
                  preparedStatement.executeUpdate();
              }
+             //Listの最後を取得し、その開始と終了を入力できるようにします。
+             TimeCard timeCard = timeCards.get(timeCards.size() - 1);
              Date today = new Date();
              calendar.setTime(today);
              int hour = calendar.get(11);
