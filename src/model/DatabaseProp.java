@@ -41,8 +41,6 @@ public class DatabaseProp
             result = properties.getProperty("database.path");
             if(reader != null)
                 reader.close();
-
-            System.out.println("Property path\u30A8\u30E9\u30FC");
         }catch (IOException e) {
 			// TODO: handle exception
 		}
@@ -66,7 +64,6 @@ public class DatabaseProp
             result = properties.getProperty("database.user");
             if(reader != null)
                 reader.close();
-            System.out.println("Property user\u30A8\u30E9\u30FC");
         }catch (IOException e) {
 			// TODO: handle exception
 		}

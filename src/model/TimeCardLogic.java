@@ -13,8 +13,13 @@ import java.util.List;
 import dao.TimeCard;
 import dao.TimeCardDAO;
 
-public class TimeCardLogic
-{
+public class TimeCardLogic{
+
+	/**
+	 * 終了ボタンまで押されたのち、当日の表示にさらに一行追加するためのフラグ
+	 * 押されていればTRUE、そうでなければFAULSEとする。
+	 */
+	private static boolean isFinished;
 
     public TimeCardLogic()
     {
@@ -55,11 +60,18 @@ public class TimeCardLogic
         int lastDayOfMonth = calendar.get(Calendar.DATE);
         calendar.setTime(today);
         calendar.setLenient(false);
-        //2日目からその月の最終日まで
+        /**
+         * 2日目から最終日までを表示させる。
+         * しかし、本日において終了まで記録されている場合は続いてさらにもう一度「開始行」を追加する。
+         * isFinishedがtrueの場合、終了が埋まっているので、もう一行追加する。
+         */
         for(int i = 2; i <= lastDayOfMonth; i++) {
         	try{
                 calendar.set(Calendar.DATE, i);
                 result.append(createTimeCardRow(userID, thisMonth, calendar.getTime(), false));
+                if(isFinished){
+                	result.append(createNextTimeCardRow(userID, thisMonth, calendar.getTime(), false));
+                }
             }
             catch(IllegalArgumentException illegalargumentexception) {
             }
@@ -69,8 +81,9 @@ public class TimeCardLogic
         return result.toString();
     }
 
-    public static String createTimeCardRow(String userID, Date today, Date changeDate, boolean isFirstRow)
-    {
+    public static String createTimeCardRow(String userID, Date today, Date changeDate, boolean isFirstRow){
+    	//isFinishedをfalseで初期化
+    	isFinished = false;
         StringBuffer result = new StringBuffer("");
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(changeDate);
@@ -107,10 +120,8 @@ public class TimeCardLogic
             case 7: // '\007'
                 result.append((new StringBuilder("<tr class=\"date\"><td bgcolor=\"#d7eefb\">")).append(month).append("/").append(day).append("\uFF08\u571F\uFF09").toString());
                 break;
-            }
-        else
-            switch(calendar.get(7))
-            {
+            }else
+            switch(calendar.get(7)){
             case 1: // '\001'
                 result.append((new StringBuilder("<tr class=\"date\"><td bgcolor=\"#ffdbde\">")).append(day).append("\uFF08\u65E5\uFF09").toString());
                 break;
@@ -151,7 +162,6 @@ public class TimeCardLogic
         List<TimeCard> timeCards = TimeCardDAO.findTimeCardByUserIDANDDate(userID, String.valueOf(year), String.valueOf(month), String.valueOf(day));
         //timeCardの数だけその行を追加します
         int size = timeCards.size();
-        System.out.println("size is :(at 154)" + size);
         //一つもない場合は1に初期化
         if(size == 0) {
         	size = 1;
@@ -159,11 +169,45 @@ public class TimeCardLogic
         	timeCards.add(new TimeCard("", userID, "", "", "", ""));
         }
         for(int i = 0; i < size; i++) {
+        	isFinished = false;
         	TimeCard timeCard = timeCards.get(i);
         	if(timeCard == null) {
         		timeCard = new TimeCard("", userID, "", "", "", "");
         	}
-            //日付が本日の場合
+        	//2回目以降の表示では日付を表示しないセルを一つ挟む
+        	if(i != 0) {
+        		switch(calendar.get(7)){
+                case 1: // '\001'
+                    result.append((new StringBuilder("<tr class=\"date\"><td bgcolor=\"#ffdbde\">").toString()));
+                    break;
+
+                case 2: // '\002'
+                    result.append((new StringBuilder("<tr class=\"date\"><td bgcolor=\"#EFEFEF\">").toString()));
+                    break;
+
+                case 3: // '\003'
+                    result.append((new StringBuilder("<tr class=\"date\"><td bgcolor=\"#EFEFEF\">").toString()));
+                    break;
+
+                case 4: // '\004'
+                    result.append((new StringBuilder("<tr class=\"date\"><td bgcolor=\"#EFEFEF\">").toString()));
+                    break;
+
+                case 5: // '\005'
+                    result.append((new StringBuilder("<tr class=\"date\"><td bgcolor=\"#EFEFEF\">").toString()));
+                    break;
+
+                case 6: // '\006'
+                    result.append((new StringBuilder("<tr class=\"date\"><td bgcolor=\"#EFEFEF\">").toString()));
+                    break;
+
+                case 7: // '\007'
+                    result.append((new StringBuilder("<tr class=\"date\"><td bgcolor=\"#d7eefb\">").toString()));
+                    break;
+        		}
+        	}
+
+            //日付が本日の場合（終了まで押されている場合isFinishedをtrueにします。
             if(flag){
             	//記録済みの場合
                 if(!timeCard.getArrivalTime().equals("")){
@@ -198,6 +242,545 @@ public class TimeCardLogic
                         break;
                     }
                     result.append("</td>\r\n");
+                //まだ記録されていない場合
+                }else{
+                    switch(calendar.get(7)){
+                    case 1: // '\001'
+                        result.append((new StringBuilder("<td bgcolor=\"#ffdbde\"><div class=\"button\"><a href=\"/SVD_IntraNet/TimeCardServlet?action=arrival&year=")).append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\">開始</a></div>").toString());
+                        break;
+
+                    case 2: // '\002'
+                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\"><div class=\"button\"><a href=\"/SVD_IntraNet/TimeCardServlet?action=arrival&year=")).append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\">開始</a></div>").toString());
+                        break;
+
+                    case 3: // '\003'
+                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\"><div class=\"button\"><a href=\"/SVD_IntraNet/TimeCardServlet?action=arrival&year=")).append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\">開始</a></div>").toString());
+                        break;
+
+                    case 4: // '\004'
+                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\"><div class=\"button\"><a href=\"/SVD_IntraNet/TimeCardServlet?action=arrival&year=")).append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\">開始</a></div>").toString());
+                        break;
+
+                    case 5: // '\005'
+                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\"><div class=\"button\"><a href=\"/SVD_IntraNet/TimeCardServlet?action=arrival&year=")).append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\">開始</a></div>").toString());
+                        break;
+
+                    case 6: // '\006'
+                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\"><div class=\"button\"><a href=\"/SVD_IntraNet/TimeCardServlet?action=arrival&year=")).append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\">開始</a></div>").toString());
+                        break;
+
+                    case 7: // '\007'
+                        result.append((new StringBuilder("<td bgcolor=\"#d7eefb\"><div class=\"button\"><a href=\"/SVD_IntraNet/TimeCardServlet?action=arrival&year=")).append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\">開始</a></div>").toString());
+                        break;
+                    }
+                    result.append("</td>\r\n");
+                }
+            }else{
+                String arrivalTime = timeCard.getArrivalTime();
+                switch(calendar.get(7)){
+                case 1: // '\001'
+                    result.append((new StringBuilder("<td bgcolor=\"#ffdbde\">")).append(arrivalTime).toString());
+                    break;
+
+                case 2: // '\002'
+                    result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(arrivalTime).toString());
+                    break;
+
+                case 3: // '\003'
+                    result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(arrivalTime).toString());
+                    break;
+
+                case 4: // '\004'
+                    result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(arrivalTime).toString());
+                    break;
+
+                case 5: // '\005'
+                    result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(arrivalTime).toString());
+                    break;
+
+                case 6: // '\006'
+                    result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(arrivalTime).toString());
+                    break;
+
+                case 7: // '\007'
+                    result.append((new StringBuilder("<td bgcolor=\"#d7eefb\">")).append(arrivalTime).toString());
+                    break;
+                }
+                result.append("</td>\r\n");
+            }
+            //終了時刻
+            if(flag){
+                if(!timeCard.getLeaveTime().equals("")){
+                	isFinished = true;
+                    String leaveTime = timeCard.getLeaveTime();
+                    switch(calendar.get(7)){
+                    case 1: // '\001'
+                        result.append((new StringBuilder("<td bgcolor=\"#ffdbde\">")).append(leaveTime).toString());
+                        break;
+
+                    case 2: // '\002'
+                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(leaveTime).toString());
+                        break;
+
+                    case 3: // '\003'
+                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(leaveTime).toString());
+                        break;
+
+                    case 4: // '\004'
+                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(leaveTime).toString());
+                        break;
+
+                    case 5: // '\005'
+                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(leaveTime).toString());
+                        break;
+
+                    case 6: // '\006'
+                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(leaveTime).toString());
+                        break;
+
+                    case 7: // '\007'
+                        result.append((new StringBuilder("<td bgcolor=\"#d7eefb\">")).append(leaveTime).toString());
+                        break;
+                    }
+                    result.append("</td>\r\n");
+                }else{
+                    switch(calendar.get(7)){
+                    case 1: // '\001'
+                        result.append((new StringBuilder("<td bgcolor=\"#ffdbde\"><div class=\"button\"><a href=\"/SVD_IntraNet/TimeCardServlet?action=leave&year=")).append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\">終了</a></div>").toString());
+                        break;
+
+                    case 2: // '\002'
+                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\"><div class=\"button\"><a href=\"/SVD_IntraNet/TimeCardServlet?action=leave&year=")).append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\">終了</a></div>").toString());
+                        break;
+
+                    case 3: // '\003'
+                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\"><div class=\"button\"><a href=\"/SVD_IntraNet/TimeCardServlet?action=leave&year=")).append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\">終了</a></div>").toString());
+                        break;
+
+                    case 4: // '\004'
+                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\"><div class=\"button\"><a href=\"/SVD_IntraNet/TimeCardServlet?action=leave&year=")).append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\">終了</a></div>").toString());
+                        break;
+
+                    case 5: // '\005'
+                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\"><div class=\"button\"><a href=\"/SVD_IntraNet/TimeCardServlet?action=leave&year=")).append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\">終了</a></div>").toString());
+                        break;
+
+                    case 6: // '\006'
+                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\"><div class=\"button\"><a href=\"/SVD_IntraNet/TimeCardServlet?action=leave&year=")).append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\">終了</a></div>").toString());
+                        break;
+
+                    case 7: // '\007'
+                        result.append((new StringBuilder("<td bgcolor=\"#d7eefb\"><div class=\"button\"><a href=\"/SVD_IntraNet/TimeCardServlet?action=leave&year=")).append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\">終了</a></div>").toString());
+                        break;
+                    }
+                    result.append("</td>\r\n");
+                }
+            }else{
+                String leaveTime = timeCard.getLeaveTime();
+                switch(calendar.get(7)){
+                case 1: // '\001'
+                    result.append((new StringBuilder("<td bgcolor=\"#ffdbde\">")).append(leaveTime).toString());
+                    break;
+
+                case 2: // '\002'
+                    result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(leaveTime).toString());
+                    break;
+
+                case 3: // '\003'
+                    result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(leaveTime).toString());
+                    break;
+
+                case 4: // '\004'
+                    result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(leaveTime).toString());
+                    break;
+
+                case 5: // '\005'
+                    result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(leaveTime).toString());
+                    break;
+
+                case 6: // '\006'
+                    result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(leaveTime).toString());
+                    break;
+
+                case 7: // '\007'
+                    result.append((new StringBuilder("<td bgcolor=\"#d7eefb\">")).append(leaveTime).toString());
+                    break;
+                }
+                result.append("</td>\r\n");
+            }
+//            if(flag)
+//            {
+//                if(!timeCard.getGoOutTime().equals(""))
+//                {
+//                    String goOutTime = timeCard.getGoOutTime();
+//                    switch(calendar.get(7))
+//                    {
+//                    case 1: // '\001'
+//                        result.append((new StringBuilder("<td bgcolor=\"#ffdbde\">")).append(goOutTime).toString());
+//                        break;
+    //
+//                    case 2: // '\002'
+//                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(goOutTime).toString());
+//                        break;
+    //
+//                    case 3: // '\003'
+//                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(goOutTime).toString());
+//                        break;
+    //
+//                    case 4: // '\004'
+//                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(goOutTime).toString());
+//                        break;
+    //
+//                    case 5: // '\005'
+//                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(goOutTime).toString());
+//                        break;
+    //
+//                    case 6: // '\006'
+//                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(goOutTime).toString());
+//                        break;
+    //
+//                    case 7: // '\007'
+//                        result.append((new StringBuilder("<td bgcolor=\"#d7eefb\">")).append(goOutTime).toString());
+//                        break;
+//                    }
+//                    result.append("</td>\r\n");
+//                } else
+//                {
+//                    switch(calendar.get(7))
+//                    {
+//                    case 1: // '\001'
+//                        result.append((new StringBuilder("<td bgcolor=\"#ffdbde\"><div class=\"button\"><a href=\"/SVD_IntraNet/TimeCardServlet?action=goOut&year=")).append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\">\u5916\u51FA</a></div>").toString());
+//                        break;
+    //
+//                    case 2: // '\002'
+//                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\"><div class=\"button\"><a href=\"/SVD_IntraNet/TimeCardServlet?action=goOut&year=")).append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\">\u5916\u51FA</a></div>").toString());
+//                        break;
+    //
+//                    case 3: // '\003'
+//                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\"><div class=\"button\"><a href=\"/SVD_IntraNet/TimeCardServlet?action=goOut&year=")).append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\">\u5916\u51FA</a></div>").toString());
+//                        break;
+    //
+//                    case 4: // '\004'
+//                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\"><div class=\"button\"><a href=\"/SVD_IntraNet/TimeCardServlet?action=goOut&year=")).append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\">\u5916\u51FA</a></div>").toString());
+//                        break;
+    //
+//                    case 5: // '\005'
+//                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\"><div class=\"button\"><a href=\"/SVD_IntraNet/TimeCardServlet?action=goOut&year=")).append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\">\u5916\u51FA</a></div>").toString());
+//                        break;
+    //
+//                    case 6: // '\006'
+//                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\"><div class=\"button\"><a href=\"/SVD_IntraNet/TimeCardServlet?action=goOut&year=")).append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\">\u5916\u51FA</a></div>").toString());
+//                        break;
+    //
+//                    case 7: // '\007'
+//                        result.append((new StringBuilder("<td bgcolor=\"#d7eefb\"><div class=\"button\"><a href=\"/SVD_IntraNet/TimeCardServlet?action=goOut&year=")).append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\">\u5916\u51FA</a></div>").toString());
+//                        break;
+//                    }
+//                    result.append("</td>\r\n");
+//                }
+//            } else
+//            {
+//                String goOutTime = timeCard.getGoOutTime();
+//                switch(calendar.get(7))
+//                {
+//                case 1: // '\001'
+//                    result.append((new StringBuilder("<td bgcolor=\"#ffdbde\">")).append(goOutTime).toString());
+//                    break;
+    //
+//                case 2: // '\002'
+//                    result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(goOutTime).toString());
+//                    break;
+    //
+//                case 3: // '\003'
+//                    result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(goOutTime).toString());
+//                    break;
+    //
+//                case 4: // '\004'
+//                    result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(goOutTime).toString());
+//                    break;
+    //
+//                case 5: // '\005'
+//                    result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(goOutTime).toString());
+//                    break;
+    //
+//                case 6: // '\006'
+//                    result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(goOutTime).toString());
+//                    break;
+    //
+//                case 7: // '\007'
+//                    result.append((new StringBuilder("<td bgcolor=\"#d7eefb\">")).append(goOutTime).toString());
+//                    break;
+//                }
+//                result.append("</td>\r\n");
+//            }
+//            if(flag)
+//            {
+//                if(!timeCard.getGoBackTime().equals(""))
+//                {
+//                    String goBackTime = timeCard.getGoBackTime();
+//                    switch(calendar.get(7))
+//                    {
+//                    case 1: // '\001'
+//                        result.append((new StringBuilder("<td bgcolor=\"#ffdbde\">")).append(goBackTime).toString());
+//                        break;
+    //
+//                    case 2: // '\002'
+//                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(goBackTime).toString());
+//                        break;
+    //
+//                    case 3: // '\003'
+//                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(goBackTime).toString());
+//                        break;
+    //
+//                    case 4: // '\004'
+//                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(goBackTime).toString());
+//                        break;
+    //
+//                    case 5: // '\005'
+//                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(goBackTime).toString());
+//                        break;
+    //
+//                    case 6: // '\006'
+//                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(goBackTime).toString());
+//                        break;
+    //
+//                    case 7: // '\007'
+//                        result.append((new StringBuilder("<td bgcolor=\"#d7eefb\">")).append(goBackTime).toString());
+//                        break;
+//                    }
+//                    result.append("</td>\r\n");
+//                } else
+//                {
+//                    switch(calendar.get(7))
+//                    {
+//                    case 1: // '\001'
+//                        result.append((new StringBuilder("<td bgcolor=\"#ffdbde\"><div class=\"button\"><a href=\"/SVD_IntraNet/TimeCardServlet?action=goBack&year=")).append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\">\u5FA9\u5E30</a></div>").toString());
+//                        break;
+    //
+//                    case 2: // '\002'
+//                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\"><div class=\"button\"><a href=\"/SVD_IntraNet/TimeCardServlet?action=goBack&year=")).append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\">\u5FA9\u5E30</a></div>").toString());
+//                        break;
+    //
+//                    case 3: // '\003'
+//                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\"><div class=\"button\"><a href=\"/SVD_IntraNet/TimeCardServlet?action=goBack&year=")).append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\">\u5FA9\u5E30</a></div>").toString());
+//                        break;
+    //
+//                    case 4: // '\004'
+//                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\"><div class=\"button\"><a href=\"/SVD_IntraNet/TimeCardServlet?action=goBack&year=")).append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\">\u5FA9\u5E30</a></div>").toString());
+//                        break;
+    //
+//                    case 5: // '\005'
+//                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\"><div class=\"button\"><a href=\"/SVD_IntraNet/TimeCardServlet?action=goBack&year=")).append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\">\u5FA9\u5E30</a></div>").toString());
+//                        break;
+    //
+//                    case 6: // '\006'
+//                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\"><div class=\"button\"><a href=\"/SVD_IntraNet/TimeCardServlet?action=goBack&year=")).append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\">\u5FA9\u5E30</a></div>").toString());
+//                        break;
+    //
+//                    case 7: // '\007'
+//                        result.append((new StringBuilder("<td bgcolor=\"#d7eefb\"><div class=\"button\"><a href=\"/SVD_IntraNet/TimeCardServlet?action=goBack&year=")).append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\">\u5FA9\u5E30</a></div>").toString());
+//                        break;
+//                    }
+//                    result.append("</td>\r\n");
+//                }
+//            } else
+//            {
+//                String goBackTime = timeCard.getGoBackTime();
+//                switch(calendar.get(7))
+//                {
+//                case 1: // '\001'
+//                    result.append((new StringBuilder("<td bgcolor=\"#ffdbde\">")).append(goBackTime).toString());
+//                    break;
+    //
+//                case 2: // '\002'
+//                    result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(goBackTime).toString());
+//                    break;
+    //
+//                case 3: // '\003'
+//                    result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(goBackTime).toString());
+//                    break;
+    //
+//                case 4: // '\004'
+//                    result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(goBackTime).toString());
+//                    break;
+    //
+//                case 5: // '\005'
+//                    result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(goBackTime).toString());
+//                    break;
+    //
+//                case 6: // '\006'
+//                    result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(goBackTime).toString());
+//                    break;
+    //
+//                case 7: // '\007'
+//                    result.append((new StringBuilder("<td bgcolor=\"#d7eefb\">")).append(goBackTime).toString());
+//                    break;
+//                }
+//                result.append("</td>\r\n");
+//            }
+
+            //修正
+            switch(calendar.get(7))
+            {
+            case 1: // '\001'
+                result.append((new StringBuilder("<td bgcolor=\"#ffdbde\"><div class=\"plus\"><a href=\"/SVD_IntraNet/TimeCardModify?action=modify&timecardID=")).append(timeCard.getTimecardID()).append("&year=").append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\"><img border=\"0\" src=\"img/plus.png\" alt=\"Plus Image\"></img></a></div>").toString());
+                break;
+
+            case 2: // '\002'
+                result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\"><div class=\"plus\"><a href=\"/SVD_IntraNet/TimeCardModify?action=modify&timecardID=")).append(timeCard.getTimecardID()).append("&year=").append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\"><img border=\"0\" src=\"img/plus.png\" alt=\"Plus Image\"></img></a></div>").toString());
+                break;
+
+            case 3: // '\003'
+                result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\"><div class=\"plus\"><a href=\"/SVD_IntraNet/TimeCardModify?action=modify&timecardID=")).append(timeCard.getTimecardID()).append("&year=").append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\"><img border=\"0\" src=\"img/plus.png\" alt=\"Plus Image\"></img></a></div>").toString());
+                break;
+
+            case 4: // '\004'
+                result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\"><div class=\"plus\"><a href=\"/SVD_IntraNet/TimeCardModify?action=modify&timecardID=")).append(timeCard.getTimecardID()).append("&year=").append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\"><img border=\"0\" src=\"img/plus.png\" alt=\"Plus Image\"></img></a></div>").toString());
+                break;
+
+            case 5: // '\005'
+                result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\"><div class=\"plus\"><a href=\"/SVD_IntraNet/TimeCardModify?action=modify&timecardID=")).append(timeCard.getTimecardID()).append("&year=").append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\"><img border=\"0\" src=\"img/plus.png\" alt=\"Plus Image\"></img></a></div>").toString());
+                break;
+
+            case 6: // '\006'
+                result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\"><div class=\"plus\"><a href=\"/SVD_IntraNet/TimeCardModify?action=modify&timecardID=")).append(timeCard.getTimecardID()).append("&year=").append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\"><img border=\"0\" src=\"img/plus.png\" alt=\"Plus Image\"></img></a></div>").toString());
+                break;
+
+            case 7: // '\007'
+                result.append((new StringBuilder("<td bgcolor=\"#d7eefb\"><div class=\"plus\"><a href=\"/SVD_IntraNet/TimeCardModify?action=modify&timecardID=")).append(timeCard.getTimecardID()).append("&year=").append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\"><img border=\"0\" src=\"img/plus.png\" alt=\"Plus Image\"></img></a></div>").toString());
+                break;
+            }
+            result.append("</td></tr>\r\n");
+        }
+
+        return result.toString();
+    }
+
+
+    /**
+     * isFinishedがtrueの場合に、呼ばれることを想定しており、このメソッドは追加分のタイムカード行を出力します。
+     * @param userID userID
+     * @param today 本日の日付
+     * @param changeDate 表示させたい日付
+     * @param isFirstRow 一行目かどうか
+     * @return 追加分のHTML
+     */
+    public static String createNextTimeCardRow(String userID, Date today, Date changeDate, boolean isFirstRow) {
+        StringBuffer result = new StringBuffer("");
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(changeDate);
+        int year = calendar.get(1);
+        int month = calendar.get(2) + 1;
+        int day = calendar.get(5);
+        if(isFirstRow){
+        	switch(calendar.get(7)){
+            case 1: // '\001'
+                result.append((new StringBuilder("<tr class=\"date\"><td bgcolor=\"#ffdbde\">").toString()));
+                break;
+
+            case 2: // '\002'
+                result.append((new StringBuilder("<tr class=\"date\"><td bgcolor=\"#EFEFEF\">").toString()));
+                break;
+
+            case 3: // '\003'
+                result.append((new StringBuilder("<tr class=\"date\"><td bgcolor=\"#EFEFEF\">").toString()));
+                break;
+
+            case 4: // '\004'
+                result.append((new StringBuilder("<tr class=\"date\"><td bgcolor=\"#EFEFEF\">").toString()));
+                break;
+
+            case 5: // '\005'
+                result.append((new StringBuilder("<tr class=\"date\"><td bgcolor=\"#EFEFEF\">").toString()));
+                break;
+
+            case 6: // '\006'
+                result.append((new StringBuilder("<tr class=\"date\"><td bgcolor=\"#EFEFEF\">").toString()));
+                break;
+
+            case 7: // '\007'
+                result.append((new StringBuilder("<tr class=\"date\"><td bgcolor=\"#d7eefb\">").toString()));
+                break;
+            }
+        }else{
+        	System.out.println("else内にいます");
+        	switch(calendar.get(7)){
+            case 1: // '\001'
+                result.append((new StringBuilder("<tr class=\"date\"><td bgcolor=\"#ffdbde\">").toString()));
+                break;
+
+            case 2: // '\002'
+                result.append((new StringBuilder("<tr class=\"date\"><td bgcolor=\"#EFEFEF\">").toString()));
+                break;
+
+            case 3: // '\003'
+                result.append((new StringBuilder("<tr class=\"date\"><td bgcolor=\"#EFEFEF\">").toString()));
+                break;
+
+            case 4: // '\004'
+                result.append((new StringBuilder("<tr class=\"date\"><td bgcolor=\"#EFEFEF\">").toString()));
+                break;
+
+            case 5: // '\005'
+                result.append((new StringBuilder("<tr class=\"date\"><td bgcolor=\"#EFEFEF\">").toString()));
+                break;
+
+            case 6: // '\006'
+                result.append((new StringBuilder("<tr class=\"date\"><td bgcolor=\"#EFEFEF\">").toString()));
+                break;
+
+            case 7: // '\007'
+                result.append((new StringBuilder("<tr class=\"date\"><td bgcolor=\"#d7eefb\">").toString()));
+                break;
+            }
+        }
+
+        result.append("</td>\r\n");
+        //flagは扱っている日付が今日であればTRUEを持つ
+        boolean flag = false;
+        calendar.setTime(today);
+        int monthToday = calendar.get(2) + 1;
+        int dayToday = calendar.get(5);
+        if(month == monthToday && day == dayToday)
+            flag = true;
+        calendar.setTime(changeDate);
+        TimeCard timeCard = new TimeCard("", userID, "", "", "", "");
+            //日付が本日の場合（終了まで押されている場合isFinishedをtrueにします。
+            if(flag){
+            	//記録済みの場合
+                if(!timeCard.getArrivalTime().equals("")){
+                    String arrivalTime = timeCard.getArrivalTime();
+                    switch(calendar.get(7)){
+                    case 1: // '\001'
+                        result.append((new StringBuilder("<td bgcolor=\"#ffdbde\">")).append(arrivalTime).toString());
+                        break;
+
+                    case 2: // '\002'
+                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(arrivalTime).toString());
+                        break;
+
+                    case 3: // '\003'
+                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(arrivalTime).toString());
+                        break;
+
+                    case 4: // '\004'
+                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(arrivalTime).toString());
+                        break;
+
+                    case 5: // '\005'
+                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(arrivalTime).toString());
+                        break;
+
+                    case 6: // '\006'
+                        result.append((new StringBuilder("<td bgcolor=\"#EFEFEF\">")).append(arrivalTime).toString());
+                        break;
+
+                    case 7: // '\007'
+                        result.append((new StringBuilder("<td bgcolor=\"#d7eefb\">")).append(arrivalTime).toString());
+                        break;
+                    }
+                    result.append("</td>\r\n");
+                //まだ記録されていない場合
                 }else{
                     switch(calendar.get(7)){
                     case 1: // '\001'
@@ -605,13 +1188,11 @@ public class TimeCardLogic
                 break;
             }
             result.append("</td></tr>\r\n");
-        }
 
         return result.toString();
     }
 
-    public static String createFirstTimeCardTable()
-    {
+    public static String createFirstTimeCardTable(){
         StringBuffer result = new StringBuffer("");
         result.append("<table class = \"timeCard\">\r\n<tr><th bgcolor=\"#EFEFEF\">日付</th>\r\n<th bgcolor=\"#EFEFEF\">開始時刻</th>\r\n<th bgcolor=\"#EFEFEF\">終了時刻</th>\r\n<th bgcolor=\"#EFEFEF\">備考及び修正</th></tr>");
         return result.toString();

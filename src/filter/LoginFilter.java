@@ -35,7 +35,6 @@ public class LoginFilter
     {
         request.setCharacterEncoding("UTF-8");
         String servletName = ((HttpServletRequest)request).getServletPath();
-        System.out.println(servletName);
         if(!servletName.equals("/LoginServlet") && !servletName.matches("^/css/.+") && !servletName.matches("^/img/.+") && !servletName.matches("^/javascript/.+"))
         {
             HttpSession session = ((HttpServletRequest)request).getSession();

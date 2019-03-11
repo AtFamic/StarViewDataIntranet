@@ -124,6 +124,7 @@ public class TimeCardDAO
              if(existsTimeCardDependOnTime(date, userID))
              {
                  timeCards = findTimeCardByUserIDANDDate(userID, String.valueOf(year), SMonth, SDay);
+
              } else
              {
             	 timeCards = new ArrayList<TimeCard>();
@@ -132,8 +133,16 @@ public class TimeCardDAO
                  PreparedStatement preparedStatement = connection.prepareStatement(sql);
                  preparedStatement.executeUpdate();
              }
-             //Listの最後を取得し、その開始と終了を入力できるようにします。
+             //Listの最後を取得し、その終了時間が既に埋められていた場合、新たなタイムカードを作成し、その開始と終了を入力できるようにします。
              TimeCard timeCard = timeCards.get(timeCards.size() - 1);
+             //終了時間が埋まっている場合
+             if(!timeCard.getLeaveTime().equals("")) {
+            	 System.out.println("新しいタイムカードを作成します。");
+            	 timeCard = new TimeCard(userID, "", "", "", "");
+            	 newTimeCard(timeCard, String.valueOf(year), SMonth, SDay);
+            	 timeCards = findTimeCardByUserIDANDDate(userID, String.valueOf(year), SMonth, SDay);
+            	 timeCard = timeCards.get(timeCards.size() - 1);
+             }
              Date today = new Date();
              calendar.setTime(today);
              int hour = calendar.get(11);
@@ -170,7 +179,8 @@ public class TimeCardDAO
                      timeCard.setLeaveTime(now);
                  break;
              }
-             String sql = (new StringBuilder("UPDATE TIMECARD SET\r\nARRIVALTIME = '")).append(timeCard.getArrivalTime()).append("',").append("GOOUTTIME = '").append(timeCard.getGoOutTime()).append("',").append("GOBACKTIME = '").append(timeCard.getGoBackTime()).append("',").append("LEAVETIME = '").append(timeCard.getLeaveTime()).append("' WHERE ").append("USERID = '").append(userID).append("' AND ").append("YEAR = ").append(year).append(" AND ").append("MONTH = ").append(month).append(" AND ").append("DATE = ").append(day).toString();
+             String sql = (new StringBuilder("UPDATE TIMECARD SET\r\nARRIVALTIME = '")).append(timeCard.getArrivalTime()).append("',").append("GOOUTTIME = '").append(timeCard.getGoOutTime()).append("',").append("GOBACKTIME = '").append(timeCard.getGoBackTime()).append("',").append("LEAVETIME = '").append(timeCard.getLeaveTime()).append("' WHERE ").append("USERID = '").append(userID).append("' AND ").append("YEAR = ").append(year).append(" AND ").append("MONTH = ").append(month).append(" AND ").append("DATE = ").append(day).append(" AND ").append("TIMECARDID = '").append(timeCard.getTimecardID() +  "'").toString();
+             System.out.println(sql);
              PreparedStatement preparedStatement = connection.prepareStatement(sql);
              preparedStatement.executeUpdate();
         }catch (ClassNotFoundException e) {
