@@ -35,7 +35,6 @@ public class LoginServlet extends HttpServlet
         ServletContext context = getServletContext();
         String path = context.getRealPath("/WEB-INF/res/database.properties");
         DatabaseProp.setRealPath(path);
-        System.out.println((new StringBuilder("realPath:")).append(path).toString());
         RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/login.jsp");
         dispatcher.forward(request, response);
     }
@@ -43,6 +42,7 @@ public class LoginServlet extends HttpServlet
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
         throws ServletException, IOException
     {
+
         ServletContext context = getServletContext();
         String path = context.getRealPath("/WEB-INF/res/database.properties");
         DatabaseProp.setRealPath(path);

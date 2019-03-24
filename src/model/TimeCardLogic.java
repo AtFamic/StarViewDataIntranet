@@ -169,6 +169,8 @@ public class TimeCardLogic{
         	timeCards.add(new TimeCard("", userID, "", "", "", ""));
         }
         for(int i = 0; i < size; i++) {
+        	String arrivalTime = null;
+        	String leaveTime = null;
         	isFinished = false;
         	TimeCard timeCard = timeCards.get(i);
         	if(timeCard == null) {
@@ -211,7 +213,7 @@ public class TimeCardLogic{
             if(flag){
             	//記録済みの場合
                 if(!timeCard.getArrivalTime().equals("")){
-                    String arrivalTime = timeCard.getArrivalTime();
+                    arrivalTime = timeCard.getArrivalTime();
                     switch(calendar.get(7)){
                     case 1: // '\001'
                         result.append((new StringBuilder("<td bgcolor=\"#ffdbde\">")).append(arrivalTime).toString());
@@ -276,7 +278,7 @@ public class TimeCardLogic{
                     result.append("</td>\r\n");
                 }
             }else{
-                String arrivalTime = timeCard.getArrivalTime();
+                arrivalTime = timeCard.getArrivalTime();
                 switch(calendar.get(7)){
                 case 1: // '\001'
                     result.append((new StringBuilder("<td bgcolor=\"#ffdbde\">")).append(arrivalTime).toString());
@@ -312,7 +314,7 @@ public class TimeCardLogic{
             if(flag){
                 if(!timeCard.getLeaveTime().equals("")){
                 	isFinished = true;
-                    String leaveTime = timeCard.getLeaveTime();
+                    leaveTime = timeCard.getLeaveTime();
                     switch(calendar.get(7)){
                     case 1: // '\001'
                         result.append((new StringBuilder("<td bgcolor=\"#ffdbde\">")).append(leaveTime).toString());
@@ -376,7 +378,7 @@ public class TimeCardLogic{
                     result.append("</td>\r\n");
                 }
             }else{
-                String leaveTime = timeCard.getLeaveTime();
+                leaveTime = timeCard.getLeaveTime();
                 switch(calendar.get(7)){
                 case 1: // '\001'
                     result.append((new StringBuilder("<td bgcolor=\"#ffdbde\">")).append(leaveTime).toString());
@@ -648,6 +650,58 @@ public class TimeCardLogic{
 
             case 7: // '\007'
                 result.append((new StringBuilder("<td bgcolor=\"#d7eefb\"><div class=\"plus\"><a href=\"/SVD_IntraNet/TimeCardModify?action=modify&timecardID=")).append(timeCard.getTimecardID()).append("&year=").append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\"><img border=\"0\" src=\"img/plus.png\" alt=\"Plus Image\"></img></a></div>").toString());
+                break;
+            }
+            result.append("</td>\r\n");
+            //勤務時間を計算し表示する。
+            String workingTime = "";
+            if(arrivalTime != null && leaveTime != null) {
+            	if(!arrivalTime.equals("") && !leaveTime.equals("") ) {
+                	String[] tempArrival = arrivalTime.split(":");
+                	int hArrival = Integer.parseInt(tempArrival[0]);
+                	int mArrival = Integer.parseInt(tempArrival[1]);
+                	String[] tempLeave = leaveTime.split(":");
+                	int hLeave = Integer.parseInt(tempLeave[0]);
+                	int mLeave = Integer.parseInt(tempLeave[1]);
+
+                	int duration = (hLeave * 60 + mLeave) - (hArrival * 60 + mArrival);
+                	if(duration >= 0) {
+                		int workinghour = duration / 60;
+                		int workingmin = duration % 60;
+                		workingTime = workinghour + "時間" + workingmin + "分";
+                	}else if(duration < 0) {
+                		workingTime = "終了時間が開始時間より早くなっています。";
+                	}
+                }
+            }
+            switch(calendar.get(7))
+            {
+            case 1: // '\001'
+                result.append(new StringBuilder("<td bgcolor=\"#ffdbde\"><div class=\"workingDuration\">" + workingTime + " </div>").toString());
+                break;
+
+            case 2: // '\002'
+                result.append(new StringBuilder("<td bgcolor=\"#EFEFEF\"><div class=\"workingDuration\"> " + workingTime + " </div>").toString());
+                break;
+
+            case 3: // '\003'
+                result.append(new StringBuilder("<td bgcolor=\"#EFEFEF\"><div class=\"workingDuration\"> " + workingTime + " </div>").toString());
+                break;
+
+            case 4: // '\004'
+                result.append(new StringBuilder("<td bgcolor=\"#EFEFEF\"><div class=\"workingDuration\"> " + workingTime + " </div>").toString());
+                break;
+
+            case 5: // '\005'
+                result.append(new StringBuilder("<td bgcolor=\"#EFEFEF\"><div class=\"workingDuration\"> " + workingTime + " </div>").toString());
+                break;
+
+            case 6: // '\006'
+                result.append(new StringBuilder("<td bgcolor=\"#EFEFEF\"><div class=\"workingDuration\"> " + workingTime + " </div>").toString());
+                break;
+
+            case 7: // '\007'
+                result.append(new StringBuilder("<td bgcolor=\"#d7eefb\"><div class=\"workingDuration\"> " + workingTime + " </div>").toString());
                 break;
             }
             result.append("</td></tr>\r\n");
@@ -738,6 +792,8 @@ public class TimeCardLogic{
         result.append("</td>\r\n");
         //flagは扱っている日付が今日であればTRUEを持つ
         boolean flag = false;
+        String arrivalTime = null;
+        String leaveTime = null;
         calendar.setTime(today);
         int monthToday = calendar.get(2) + 1;
         int dayToday = calendar.get(5);
@@ -749,7 +805,7 @@ public class TimeCardLogic{
             if(flag){
             	//記録済みの場合
                 if(!timeCard.getArrivalTime().equals("")){
-                    String arrivalTime = timeCard.getArrivalTime();
+                    arrivalTime = timeCard.getArrivalTime();
                     switch(calendar.get(7)){
                     case 1: // '\001'
                         result.append((new StringBuilder("<td bgcolor=\"#ffdbde\">")).append(arrivalTime).toString());
@@ -814,7 +870,7 @@ public class TimeCardLogic{
                     result.append("</td>\r\n");
                 }
             }else{
-                String arrivalTime = timeCard.getArrivalTime();
+                arrivalTime = timeCard.getArrivalTime();
                 switch(calendar.get(7)){
                 case 1: // '\001'
                     result.append((new StringBuilder("<td bgcolor=\"#ffdbde\">")).append(arrivalTime).toString());
@@ -849,7 +905,7 @@ public class TimeCardLogic{
             //終了時刻
             if(flag){
                 if(!timeCard.getLeaveTime().equals("")){
-                    String leaveTime = timeCard.getLeaveTime();
+                    leaveTime = timeCard.getLeaveTime();
                     switch(calendar.get(7)){
                     case 1: // '\001'
                         result.append((new StringBuilder("<td bgcolor=\"#ffdbde\">")).append(leaveTime).toString());
@@ -913,7 +969,7 @@ public class TimeCardLogic{
                     result.append("</td>\r\n");
                 }
             }else{
-                String leaveTime = timeCard.getLeaveTime();
+                leaveTime = timeCard.getLeaveTime();
                 switch(calendar.get(7)){
                 case 1: // '\001'
                     result.append((new StringBuilder("<td bgcolor=\"#ffdbde\">")).append(leaveTime).toString());
@@ -1187,6 +1243,59 @@ public class TimeCardLogic{
                 result.append((new StringBuilder("<td bgcolor=\"#d7eefb\"><div class=\"plus\"><a href=\"/SVD_IntraNet/TimeCardModify?action=modify&timecardID=")).append(timeCard.getTimecardID()).append("&year=").append(year).append("&month=").append(month).append("&date=").append(day).append("&userID=").append(userID).append("\"><img border=\"0\" src=\"img/plus.png\" alt=\"Plus Image\"></img></a></div>").toString());
                 break;
             }
+            result.append("</td>\r\n");
+            //勤務時間を計算し表示する。
+            String workingTime = "";
+            if(arrivalTime != null && leaveTime != null) {
+            	if(!arrivalTime.equals("") && !leaveTime.equals("") ) {
+                	String[] tempArrival = arrivalTime.split(":");
+                	int hArrival = Integer.parseInt(tempArrival[0]);
+                	int mArrival = Integer.parseInt(tempArrival[1]);
+                	String[] tempLeave = leaveTime.split(":");
+                	int hLeave = Integer.parseInt(tempLeave[0]);
+                	int mLeave = Integer.parseInt(tempLeave[1]);
+
+                	int duration = (hLeave * 60 + mLeave) - (hArrival * 60 + mArrival);
+                	if(duration >= 0) {
+                		int workinghour = duration / 60;
+                		int workingmin = duration % 60;
+                		workingTime = workinghour + "時間" + workingmin + "分";
+                	}else if(duration < 0) {
+                		workingTime = "終了時間が開始時間より早くなっています。";
+                	}
+                }
+            }
+            switch(calendar.get(7))
+            {
+            case 1: // '\001'
+                result.append(new StringBuilder("<td bgcolor=\"#ffdbde\"><div class=\"workingDuration\"> " + workingTime + " </div>").toString());
+                break;
+
+            case 2: // '\002'
+                result.append(new StringBuilder("<td bgcolor=\"#EFEFEF\"><div class=\"workingDuration\"> " + workingTime + "</div>").toString());
+                break;
+
+            case 3: // '\003'
+                result.append(new StringBuilder("<td bgcolor=\"#EFEFEF\"><div class=\"workingDuration\"> " + workingTime + " </div>").toString());
+                break;
+
+            case 4: // '\004'
+                result.append(new StringBuilder("<td bgcolor=\"#EFEFEF\"><div class=\"workingDuration\"> " + workingTime + " </div>").toString());
+                break;
+
+            case 5: // '\005'
+                result.append(new StringBuilder("<td bgcolor=\"#EFEFEF\"><div class=\"workingDuration\"> " + workingTime + " </div>").toString());
+                break;
+
+            case 6: // '\006'
+                result.append(new StringBuilder("<td bgcolor=\"#EFEFEF\"><div class=\"workingDuration\"> " + workingTime + " </div>").toString());
+                break;
+
+            case 7: // '\007'
+                result.append(new StringBuilder("<td bgcolor=\"#d7eefb\"><div class=\"workingDuration\"> " + workingTime + " </div>").toString());
+                break;
+            }
+
             result.append("</td></tr>\r\n");
 
         return result.toString();
@@ -1194,7 +1303,7 @@ public class TimeCardLogic{
 
     public static String createFirstTimeCardTable(){
         StringBuffer result = new StringBuffer("");
-        result.append("<table class = \"timeCard\">\r\n<tr><th bgcolor=\"#EFEFEF\">日付</th>\r\n<th bgcolor=\"#EFEFEF\">開始時刻</th>\r\n<th bgcolor=\"#EFEFEF\">終了時刻</th>\r\n<th bgcolor=\"#EFEFEF\">備考及び修正</th></tr>");
+        result.append("<table class = \"timeCard\">\r\n<tr><th bgcolor=\"#EFEFEF\">日付</th>\r\n<th bgcolor=\"#EFEFEF\">開始時刻</th>\r\n<th bgcolor=\"#EFEFEF\">終了時刻</th>\r\n<th bgcolor=\"#EFEFEF\">備考及び修正</th>\r\n<th bgcolor=\"#EFEFEF\">勤務時間</th></tr>");
         return result.toString();
     }
 
