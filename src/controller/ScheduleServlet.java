@@ -31,8 +31,7 @@ public class ScheduleServlet extends HttpServlet
     {
         request.setCharacterEncoding("UTF-8");
         String taskID = request.getParameter("taskID");
-        if(taskID == null)
-        {
+        if(taskID == null){
             String year = request.getParameter("year");
             String month = request.getParameter("month");
             String date = request.getParameter("date");
@@ -45,8 +44,7 @@ public class ScheduleServlet extends HttpServlet
             }
             RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/schedule.jsp");
             dispatcher.forward(request, response);
-        } else
-        {
+        }else{
             Task task = TaskDAO.findTaskByTaskID(taskID);
             request.setAttribute("task", task);
             RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/schedule.jsp");

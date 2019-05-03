@@ -349,6 +349,7 @@ public class CalendarLogic
             for(int j = 0; j < size; j++)
             {
                 Task task = (Task)tasks.get(j);
+                String taskID = task.getTaskID();
                 String name = AccountDAO.findAccountByUserID(task.getUserID()).getName();
                 String startTime = task.getStartTime();
                 String endTime = task.getEndTime();
@@ -362,7 +363,7 @@ public class CalendarLogic
                 result.append((new StringBuilder(String.valueOf(startHour))).append(":").append(startMin).append("-").append(endHour).append(":").append(endMin).toString());
                 result.append("<br>\r\n");
                 result.append((new StringBuilder("<span class=\"")).append(color).append("\">").append(color).append("</span>\r\n").toString());
-                result.append((new StringBuilder("<br>\r\n")).append(title).append("<br>\r\n\u3010").append(name).append("\u3011").toString());
+                result.append((new StringBuilder("<br>\r\n<a href=\"ScheduleServlet?taskID=" + taskID + "\">" )).append(title).append("<br>\r\n\u3010").append(name).append("\u3011</a>\r\n").toString());
                 result.append("</div>\r\n");
             }
 

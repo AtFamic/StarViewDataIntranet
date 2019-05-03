@@ -59,7 +59,7 @@ public class TimecardWriter {
 
 
 		CsvAnnotationBeanWriter<TimecardBean> csvWriter = new CsvAnnotationBeanWriter<>(TimecardBean.class,
-				Files.newBufferedWriter(new File("C:\\Users\\atfam\\OneDrive\\Documents\\Star_View_Data\\backup\\SVD_IntraNet\\timecard.csv").toPath(), Charset.forName("Shift-JIS")),
+				Files.newBufferedWriter(new File("C:\\Users\\atfam\\OneDrive\\Documents\\Star_View_Data\\backup\\SVD_IntraNet\\timecard.csv").toPath(), Charset.forName("UTF-16")),
 				CsvPreference.EXCEL_PREFERENCE);
 
 		csvWriter.writeHeader();
@@ -70,7 +70,6 @@ public class TimecardWriter {
 
 			//名前、日付、開始時間、終了時間、総勤務時間が正しいのかをチェックします。
 			//不正な場合はIllegalArgumentExceptionを吐きます
-			System.out.println(i + "回目です");
 			TimecardBean temp = output.get(i);
 
 			String name = temp.getName();

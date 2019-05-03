@@ -162,6 +162,7 @@ public class TimeCardLogic{
         List<TimeCard> timeCards = TimeCardDAO.findTimeCardByUserIDANDDate(userID, String.valueOf(year), String.valueOf(month), String.valueOf(day));
         //timeCardの数だけその行を追加します
         int size = timeCards.size();
+        System.out.println("size is :" + size);
         //一つもない場合は1に初期化
         if(size == 0) {
         	size = 1;
@@ -797,8 +798,9 @@ public class TimeCardLogic{
         calendar.setTime(today);
         int monthToday = calendar.get(2) + 1;
         int dayToday = calendar.get(5);
-        if(month == monthToday && day == dayToday)
-            flag = true;
+        if(month == monthToday && day == dayToday) {
+        	flag = true;
+        }
         calendar.setTime(changeDate);
         TimeCard timeCard = new TimeCard("", userID, "", "", "", "");
             //日付が本日の場合（終了まで押されている場合isFinishedをtrueにします。
